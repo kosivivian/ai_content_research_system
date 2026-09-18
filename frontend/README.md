@@ -44,6 +44,8 @@ Next.js 16 (App Router) + Tailwind v4. Talks to Supabase directly from Server/Cl
 
 **Evaluation breakdown:** `evaluation-breakdown.tsx`, in the sidebar next to Activity (not buried in a tab), shows the actual per-criterion scores behind the current article's weighted total and each channel's verdict -- the badges elsewhere on the page only ever showed the final number, not what drove it. Duplicates `ARTICLE_RUBRIC_WEIGHTS`/`ARTICLE_PASS_THRESHOLD` from the backend for display only (no shared package between frontend/backend here) -- the backend remains the only thing that actually enforces the pass/revise decision.
 
+**Loading indicator:** `status-badge.tsx` shows a spinning icon (`lucide-react`'s `Loader2`, `animate-spin`) next to the label whenever the backend worker is actively doing something (`intake` through `evaluating`) -- everything either waiting on a human or in a terminal state gets no spinner. This is a single change in the one shared component, so it shows up everywhere a status is displayed (dashboard rows, the request detail header) without per-page wiring, and pairs with Realtime (above) so it actually animates through real stage changes instead of needing a manual refresh to update.
+
 **Not here yet:** a diff view showing the approver what the creator changed since the AI's last output.
 
 **Required fields:** `target_audience` is now required on both the single-request form and the bulk CSV upload (previously optional) -- enforced in `requests/new/page.tsx`, `resubmit-form.tsx` (the intake-block fix-and-resubmit path), and the CSV column check, not just a DB-level assumption.
