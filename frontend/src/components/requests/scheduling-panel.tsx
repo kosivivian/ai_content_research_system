@@ -45,6 +45,7 @@ export function SchedulingPanel({
   const [submitting, setSubmitting] = useState<BufferChannel | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [expandedHistory, setExpandedHistory] = useState<Record<string, boolean>>({});
 
   const emailDraft = channelDrafts.find((d) => d.channel === "email");
   const socialDrafts = channelDrafts.filter((d) => d.channel !== "email");
@@ -84,7 +85,16 @@ export function SchedulingPanel({
       <CardContent className="flex flex-col gap-5">
         {socialDrafts.map((draft) => {
           const channel = draft.channel as BufferChannel;
+          // Newest first (queueItems already arrives ordered that way) --
+          // only the latest attempt reflects the channel's actual current
+          // state. Every "Schedule" click inserts a new row rather than
+          // replacing the last one, so older attempts (usually failed ones
+          // superseded by a retry that worked) are real history, not the
+          // current truth -- worth keeping, not worth showing by default.
           const itemsForChannel = queueItems.filter((q) => q.channel === channel);
+          const [latest, ...earlier] = itemsForChannel;
+          const historyShown = expandedHistory[channel] ?? false;
+
           return (
             <div
               key={draft.id}
@@ -92,14 +102,32 @@ export function SchedulingPanel({
             >
               <p className="text-sm font-medium">{CHANNEL_LABEL[channel]}</p>
 
-              {itemsForChannel.length > 0 && (
-                <div className="flex flex-col gap-1">
-                  {itemsForChannel.map((q) => (
-                    <div key={q.id} className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Badge variant={STATUS_VARIANT[q.status]}>{q.status}</Badge>
-                      <span>{q.scheduled_time ? new Date(q.scheduled_time).toLocaleString() : "post immediately"}</span>
+              {latest && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant={STATUS_VARIANT[latest.status]}>{latest.status}</Badge>
+                  <span>{latest.scheduled_time ? new Date(latest.scheduled_time).toLocaleString() : "post immediately"}</span>
+                </div>
+              )}
+
+              {earlier.length > 0 && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedHistory((prev) => ({ ...prev, [channel]: !historyShown }))}
+                    className="text-xs text-muted-foreground underline underline-offset-2 hover:opacity-80"
+                  >
+                    {historyShown ? "Hide" : "Show"} {earlier.length} earlier attempt{earlier.length === 1 ? "" : "s"}
+                  </button>
+                  {historyShown && (
+                    <div className="mt-1 flex flex-col gap-1">
+                      {earlier.map((q) => (
+                        <div key={q.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Badge variant={STATUS_VARIANT[q.status]}>{q.status}</Badge>
+                          <span>{q.scheduled_time ? new Date(q.scheduled_time).toLocaleString() : "post immediately"}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 

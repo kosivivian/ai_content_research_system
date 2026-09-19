@@ -73,12 +73,13 @@ export function createGenerateDeps(): GenerateDeps {
         toolName: "submit_draft_options",
         toolDescription: "Records the generated article draft options.",
         inputSchema: buildDraftSchema(numOptions),
-        // Sized for 2 drafts at TARGET_WORD_RANGE.max (~1300 words each,
-        // ~3500 tokens of prose) plus JSON/citation overhead, with real
-        // headroom -- not just raised to outrun an unbounded prompt.
-        // completeStructured throws a clear error if this is ever too
-        // tight instead of silently truncating.
-        maxTokens: 6144,
+        // ~3072 tokens per option -- comfortable headroom over
+        // TARGET_WORD_RANGE.max (~1300 words, ~1750 tokens of prose) plus
+        // JSON/citation overhead -- scaled by numOptions rather than a
+        // flat constant, so this stays correctly sized if NUM_DRAFT_OPTIONS
+        // ever changes again. completeStructured throws a clear error if
+        // this is ever too tight instead of silently truncating.
+        maxTokens: numOptions * 3072,
       });
 
       const options: DraftOption[] = result.options.map((opt, i) => ({

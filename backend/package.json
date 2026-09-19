@@ -12,7 +12,8 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test src/**/*.test.ts",
-    "test:voyage": "tsx scripts/test-voyage.ts"
+    "test:voyage": "tsx scripts/test-voyage.ts",
+    "buffer:channels": "tsx scripts/list-buffer-channels.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

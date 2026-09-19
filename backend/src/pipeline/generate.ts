@@ -3,7 +3,8 @@ import { registerStage, type StageResult } from "../worker/registry.js";
 import type { Outline, RankedSourceForPlanning } from "./plan.js";
 import { createGenerateDeps } from "./generateDeps.js";
 
-export const NUM_DRAFT_OPTIONS = 2;
+/** One draft, not several -- the evaluate_article revise loop already gives a mechanism to fix a weak draft iteratively, so generating extra parallel options added cost without a proportionate quality gain. */
+export const NUM_DRAFT_OPTIONS = 1;
 
 /** Keeps output cost predictable and bounded -- 900-1300 words is a normal SEO blog-post length, not a truncation workaround. */
 export const TARGET_WORD_RANGE = { min: 900, max: 1300 } as const;
@@ -40,10 +41,10 @@ export interface GenerateDeps {
 }
 
 /**
- * Generate stage: fill the outline into NUM_DRAFT_OPTIONS full article
- * drafts with citations back to the ranked sources. Re-entered by
- * evaluate_article on a "revise" verdict (see NEXT_STAGE override there),
- * in which case the prior evaluation's feedback is folded into the prompt.
+ * Generate stage: fill the outline into a full article draft with
+ * citations back to the ranked sources. Re-entered by evaluate_article on
+ * a "revise" verdict (see NEXT_STAGE override there), in which case the
+ * prior evaluation's feedback is folded into the prompt.
  */
 export async function runGenerate(job: PipelineJob, deps: GenerateDeps): Promise<StageResult> {
   const { planId, outline } = await deps.getOutline(job.request_id);
